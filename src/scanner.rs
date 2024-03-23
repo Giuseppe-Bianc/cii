@@ -1,4 +1,4 @@
-use std::{error, fmt::format, string::String};
+use std::{string::String};
 
 #[derive(Debug, Clone)]
 pub enum TokenType {
