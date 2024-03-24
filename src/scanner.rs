@@ -1,6 +1,6 @@
 use std::{string::String};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone,PartialEq)]
 pub enum TokenType {
 	LeftParen,
 	RigthParen,
@@ -65,10 +65,10 @@ pub enum LiteralValue {
 
 #[derive(Debug, Clone)]
 pub struct Token {
-	token_type: TokenType,
-	lexeme: String,
-	literal: Option<LiteralValue>,
-	line_number: usize,
+	pub token_type: TokenType,
+	pub lexeme: String,
+	pub literal: Option<LiteralValue>,
+	pub line_number: usize,
 }
 
 impl Token {
@@ -86,11 +86,11 @@ impl Token {
 }
 
 pub struct Scanner {
-	source: String,
-	tokens: Vec<Token>,
-	start: usize,
-	current: usize,
-	line: usize,
+	pub source: String,
+	pub tokens: Vec<Token>,
+	pub start: usize,
+	pub current: usize,
+	pub line: usize,
 }
 
 impl Scanner {
@@ -135,17 +135,77 @@ impl Scanner {
 		let c= self.advance();
 
 		match c {
-			'(' => Ok(self.add_token(LeftParen)),
-			')' => Ok(self.add_token(RigthParen)),
-			'{' => Ok(self.add_token(LeftBrace)),
-			'}' => Ok(self.add_token(RigthParen)),
-			',' => Ok(self.add_token(Comma)),
-			'.' => Ok(self.add_token(Dot)),
-			'-' => Ok(self.add_token(Minus)),
-			'+' => Ok(self.add_token(Plus)), 
-			';' => Ok(self.add_token(SemiColon)),
-			'*' => Ok(self.add_token(Star)),
-			 _ => return Err(format!("Unrecognaised char at line{}: {}",self.line, c)),
+			'(' => self.add_token(LeftParen),
+			')' => self.add_token(RigthParen),
+			'{' => self.add_token(LeftBrace),
+			'}' => self.add_token(RigthParen),
+			',' => self.add_token(Comma),
+			'.' => self.add_token(Dot),
+			'-' => self.add_token(Minus),
+			'+' => self.add_token(Plus), 
+			';' => self.add_token(SemiColon),
+			'*' => self.add_token(Star),
+			'!' => {
+				let token = if self.char_match('=') {
+					BangEqual
+				} else {
+					Equal
+				};
+				self.add_token(token)
+			}
+			'=' => {
+				let token = if self.char_match('=') {
+					EqualEqual
+				} else {
+					Equal
+				};
+				self.add_token(token)
+			}
+			'<' => {
+				let token = if self.char_match('=') {
+					LessEqual
+				} else {
+					Equal
+				};
+				self.add_token(token)
+			}
+			'>' => {
+				let token = if self.char_match('=') {
+					GreaterEqual
+				} else {
+					Equal
+				};
+				self.add_token(token)
+			}
+			'/' => {
+				if self.char_match('/') {
+					loop {
+						if self.peek() == '\n' || self.is_at_end() {
+							break;
+						}
+						self.advance();
+					}
+					
+				} else {
+					self.add_token(Slash)
+				}
+			}
+			' '|'\r'|'\t' => (),
+			'\n' => self.line += 1,
+			_ => return Err(format!("Unrecognaised char at line{}: {}",self.line, c)),
+		}
+		Ok(())
+	}
+	
+	fn char_match(self: &mut Self, ch: char) -> bool {
+		if self.is_at_end() {
+			return false;
+		}
+		if self.source.as_bytes()[self.current] as char != ch {
+			return false;
+		} else {
+			self.current += 1;
+			return true;
 		}
 	}
 
@@ -159,6 +219,7 @@ impl Scanner {
 	fn add_token(self: &mut Self, token_type: TokenType) {
 		self.add_token_lit(token_type, None);
 	}
+
 	fn add_token_lit(self: &mut Self, token_type: TokenType, literal: Option<LiteralValue>) {
 		let mut text = "".to_string();
 		let bytes = self.source.as_bytes();
@@ -172,4 +233,12 @@ impl Scanner {
 			line_number: self.line 
 		});
 	}
+	
+	fn peek(self: &Self) -> char {
+		if self.is_at_end() {
+			return '\0';
+		}
+		self.source.as_bytes()[self.current] as char
+	}
+	
 }
