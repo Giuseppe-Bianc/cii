@@ -25,7 +25,7 @@ pub enum TokenType {
 	LessEqual,
 
 	Identifier, 
-	String, 
+	StringLit, 
 	Number,
 	 
 	And, 
@@ -63,9 +63,6 @@ pub enum LiteralValue {
     Identifiervalue(String),
 }
 
-
-
-
 #[derive(Debug, Clone)]
 pub struct Token {
 	pub token_type: TokenType,
@@ -73,6 +70,7 @@ pub struct Token {
 	pub literal: Option<LiteralValue>,
 	pub line_number: usize,
 }
+use LiteralValue::*;
 
 #[allow(dead_code)]
 impl Token {
@@ -124,10 +122,10 @@ impl Scanner {
 		});
 		if errors.len() > 0 {
 			let mut joined = "".to_string();
-			errors.iter().for_each(|msg| {
-				joined.push_str(&msg);
+			for error in errors{
+				joined.push_str(&error);
 				joined.push_str("\n");
-			});
+			}
 			return Err(joined);
 		}
 		Ok(self.tokens.clone())
@@ -196,8 +194,25 @@ impl Scanner {
 			}
 			' '|'\r'|'\t' => (),
 			'\n' => self.line += 1,
+			'"' => self.string()?,
 			_ => return Err(format!("Unrecognaised char at line{}: {}",self.line, c)),
 		}
+		Ok(())
+	}
+
+	fn string(self: &mut Self) ->Result<(),String> {
+		while self.peek() != '"' && !self.is_at_end() {
+			if self.peek() == '\n'{
+				self.line += 1;
+			}
+			self.advance();
+		}
+		if self.is_at_end() {
+			return Err("unterimanted string".to_string());
+		}
+		self.advance();
+		let value = self.source[self.start+1..self.current-1].to_string();
+		self.add_token_lit(StringLit, Some(StringValue(value)));
 		Ok(())
 	}
 	
@@ -205,7 +220,7 @@ impl Scanner {
 		if self.is_at_end() {
 			return false;
 		}
-		if self.source.as_bytes()[self.current] as char != ch {
+		if self.source.chars().nth(self.current).unwrap() as char != ch {
 			return false;
 		} else {
 			self.current += 1;
@@ -214,10 +229,10 @@ impl Scanner {
 	}
 
 	fn advance(self: &mut Self) -> char {
-		let c = self.source.as_bytes()[self.current];
+		let c = self.source.chars().nth(self.current).unwrap();
 		self.current += 1;
 
-		c as char
+		c
 	}
 	
 	fn add_token(self: &mut Self, token_type: TokenType) {
@@ -225,11 +240,7 @@ impl Scanner {
 	}
 
 	fn add_token_lit(self: &mut Self, token_type: TokenType, literal: Option<LiteralValue>) {
-		let mut text = "".to_string();
-		let bytes = self.source.as_bytes();
-		for i in self.start..self.current  {
-			text.push(bytes[i] as char);
-		}
+		let text: String = self.source[self.start..self.current].to_string();
 		self.tokens.push(Token { 
 			token_type: token_type, 
 			lexeme: text, 
@@ -242,7 +253,7 @@ impl Scanner {
 		if self.is_at_end() {
 			return '\0';
 		}
-		self.source.as_bytes()[self.current] as char
+		self.source.chars().nth(self.current).unwrap()
 	}
 	
 }

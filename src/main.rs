@@ -71,6 +71,7 @@ fn main() {
 #[cfg(test)]
 mod  tests {
     use crate::scanner::TokenType::*;
+    use crate::scanner::LiteralValue::*;
 
     use super::*;
 
@@ -79,7 +80,6 @@ mod  tests {
         let source = "(( )) }{ ";
         let mut scanner = Scanner::new(source);
         scanner.scan_tokens().unwrap();
-        println!("{:?}", scanner.tokens);
         assert_eq!(scanner.tokens.len(), 7);
         assert_eq!(scanner.tokens[0].token_type, LeftParen);
         assert_eq!(scanner.tokens[1].token_type, LeftParen);
@@ -95,12 +95,55 @@ mod  tests {
         let source = "! != == >=";
         let mut scanner = Scanner::new(source);
         scanner.scan_tokens().unwrap();
-        println!("{:?}", scanner.tokens);
         assert_eq!(scanner.tokens.len(), 5);
         assert_eq!(scanner.tokens[0].token_type, Bang);
         assert_eq!(scanner.tokens[1].token_type, BangEqual);
         assert_eq!(scanner.tokens[2].token_type, EqualEqual);
         assert_eq!(scanner.tokens[3].token_type, GreaterEqual);
         assert_eq!(scanner.tokens[4].token_type, Eof);
+    }
+
+    #[test]
+    fn handle_string_lit(){
+        let source = r#""ABC""#;
+        let mut scanner = Scanner::new(source);
+        scanner.scan_tokens().unwrap();
+        assert_eq!(scanner.tokens.len(), 2);
+        assert_eq!(scanner.tokens[0].token_type, StringLit);
+        match scanner.tokens[0].literal.as_ref().unwrap() {
+            StringValue(val) => assert_eq!(val, "ABC"),
+            IntValue(_) => panic!("incorect literal type"),
+            FValue(_) => panic!("incorect literal type"),
+            Identifiervalue(_) => panic!("incorect literal type"),
+        }
+        assert_eq!(scanner.tokens[1].token_type, Eof);
+    }
+
+    #[test]
+    fn handle_string_multiline(){
+        let source = "\"ABC\nEF\"";
+        let mut scanner = Scanner::new(source);
+        scanner.scan_tokens().unwrap();
+        assert_eq!(scanner.tokens.len(), 2);
+        assert_eq!(scanner.tokens[0].token_type, StringLit);
+        match scanner.tokens[0].literal.as_ref().unwrap() {
+            StringValue(val) => assert_eq!(val, "ABC\nEF"),
+            IntValue(_) => panic!("incorect literal type"),
+            FValue(_) => panic!("incorect literal type"),
+            Identifiervalue(_) => panic!("incorect literal type"),
+        }
+        assert_eq!(scanner.tokens[1].token_type, Eof);
+    }
+
+    #[test]
+    fn handle_string_lit_unterminated(){
+        let source = r#""ABC"#;
+        let mut scanner = Scanner::new(source);
+        let scan_tokens = scanner.scan_tokens();
+        match scan_tokens {
+            Ok(_) => panic!("shoud have failed"),
+            Err(_) => (),
+        }
+        
     }
 }
