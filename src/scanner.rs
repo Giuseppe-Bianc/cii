@@ -105,7 +105,7 @@ impl Scanner {
 			line: 1,
 		}
 	}
-	pub fn scan_tokens(self: &mut Self) -> Result<Vec<Token>,String> {
+	pub fn scan_tokens(&mut self) -> Result<Vec<Token>,String> {
 		let mut errors = vec![];
 		while !self.is_at_end() {
 			self.start = self.current;
@@ -130,10 +130,10 @@ impl Scanner {
 		}
 		Ok(self.tokens.clone())
 	}
-	pub fn is_at_end(self: &Self) -> bool {
+	pub fn is_at_end(&self) -> bool {
 		self.current >= self.source.len()
 	}
-	pub fn scan_token(self: &mut Self) -> Result<(), String> {
+	pub fn scan_token(&mut self) -> Result<(), String> {
 		let c= self.advance();
 
 		match c {
@@ -200,7 +200,7 @@ impl Scanner {
 		Ok(())
 	}
 
-	fn string(self: &mut Self) ->Result<(),String> {
+	fn string(&mut self) ->Result<(),String> {
 		while self.peek() != '"' && !self.is_at_end() {
 			if self.peek() == '\n'{
 				self.line += 1;
@@ -216,7 +216,7 @@ impl Scanner {
 		Ok(())
 	}
 	
-	fn char_match(self: &mut Self, ch: char) -> bool {
+	fn char_match(&mut self, ch: char) -> bool {
 		if self.is_at_end() {
 			return false;
 		}
@@ -228,18 +228,18 @@ impl Scanner {
 		}
 	}
 
-	fn advance(self: &mut Self) -> char {
+	fn advance(&mut self) -> char {
 		let c = self.source.chars().nth(self.current).unwrap();
 		self.current += 1;
 
 		c
 	}
 	
-	fn add_token(self: &mut Self, token_type: TokenType) {
+	fn add_token(&mut self, token_type: TokenType) {
 		self.add_token_lit(token_type, None);
 	}
 
-	fn add_token_lit(self: &mut Self, token_type: TokenType, literal: Option<LiteralValue>) {
+	fn add_token_lit(&mut self, token_type: TokenType, literal: Option<LiteralValue>) {
 		let text: String = self.source[self.start..self.current].to_string();
 		self.tokens.push(Token { 
 			token_type: token_type, 
@@ -249,7 +249,7 @@ impl Scanner {
 		});
 	}
 	
-	fn peek(self: &Self) -> char {
+	fn peek(&self) -> char {
 		if self.is_at_end() {
 			return '\0';
 		}
