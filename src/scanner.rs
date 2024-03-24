@@ -1,11 +1,12 @@
-use std::{string::String};
+use std::string::String;
 
+#[allow(dead_code)]
 #[derive(Debug, Clone,PartialEq)]
 pub enum TokenType {
 	LeftParen,
 	RigthParen,
 	LeftBrace,
-	RIGTHBrace,
+	RigthBrace,
 	Comma, 
 	Dot, 
 	Minus, 
@@ -53,13 +54,15 @@ impl std::fmt::Display for TokenType {
 	}
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum LiteralValue {
-	IntValue(i64),
-	FValue(f64), 
-	StringValue(String),
-	Identifiervalue(String),
+    IntValue(i64),
+    FValue(f64), 
+    StringValue(String),
+    Identifiervalue(String),
 }
+
 
 
 
@@ -71,6 +74,7 @@ pub struct Token {
 	pub line_number: usize,
 }
 
+#[allow(dead_code)]
 impl Token {
 	pub fn new(token_type: TokenType,lexeme: String, literal: Option<LiteralValue>, line_number: usize) -> Self {
 		Self { 
@@ -138,7 +142,7 @@ impl Scanner {
 			'(' => self.add_token(LeftParen),
 			')' => self.add_token(RigthParen),
 			'{' => self.add_token(LeftBrace),
-			'}' => self.add_token(RigthParen),
+			'}' => self.add_token(RigthBrace),
 			',' => self.add_token(Comma),
 			'.' => self.add_token(Dot),
 			'-' => self.add_token(Minus),
@@ -149,7 +153,7 @@ impl Scanner {
 				let token = if self.char_match('=') {
 					BangEqual
 				} else {
-					Equal
+					Bang
 				};
 				self.add_token(token)
 			}
@@ -165,7 +169,7 @@ impl Scanner {
 				let token = if self.char_match('=') {
 					LessEqual
 				} else {
-					Equal
+					Less
 				};
 				self.add_token(token)
 			}
@@ -173,7 +177,7 @@ impl Scanner {
 				let token = if self.char_match('=') {
 					GreaterEqual
 				} else {
-					Equal
+					Greater
 				};
 				self.add_token(token)
 			}

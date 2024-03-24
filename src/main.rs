@@ -70,20 +70,37 @@ fn main() {
 
 #[cfg(test)]
 mod  tests {
-    use crate::scanner::TokenType;
+    use crate::scanner::TokenType::*;
 
     use super::*;
 
     #[test]
     fn handle_one_char_tokens(){
-        let source = "(( ))";
+        let source = "(( )) }{ ";
+        let mut scanner = Scanner::new(source);
+        scanner.scan_tokens().unwrap();
+        println!("{:?}", scanner.tokens);
+        assert_eq!(scanner.tokens.len(), 7);
+        assert_eq!(scanner.tokens[0].token_type, LeftParen);
+        assert_eq!(scanner.tokens[1].token_type, LeftParen);
+        assert_eq!(scanner.tokens[2].token_type, RigthParen);
+        assert_eq!(scanner.tokens[3].token_type, RigthParen);
+        assert_eq!(scanner.tokens[4].token_type, RigthBrace);
+        assert_eq!(scanner.tokens[5].token_type, LeftBrace);
+        assert_eq!(scanner.tokens[6].token_type, Eof);
+    }
+
+    #[test]
+    fn handle_two_char_tokens(){
+        let source = "! != == >=";
         let mut scanner = Scanner::new(source);
         scanner.scan_tokens().unwrap();
         println!("{:?}", scanner.tokens);
         assert_eq!(scanner.tokens.len(), 5);
-        assert_eq!(scanner.tokens[0].token_type, TokenType::LeftParen);
-        assert_eq!(scanner.tokens[1].token_type, TokenType::LeftParen);
-        assert_eq!(scanner.tokens[2].token_type, TokenType::RigthParen);
-        assert_eq!(scanner.tokens[3].token_type, TokenType::RigthParen);
+        assert_eq!(scanner.tokens[0].token_type, Bang);
+        assert_eq!(scanner.tokens[1].token_type, BangEqual);
+        assert_eq!(scanner.tokens[2].token_type, EqualEqual);
+        assert_eq!(scanner.tokens[3].token_type, GreaterEqual);
+        assert_eq!(scanner.tokens[4].token_type, Eof);
     }
 }
