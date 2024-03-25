@@ -173,4 +173,39 @@ mod  tests {
         }
         assert_eq!(scanner.tokens[3].token_type, Eof);
     }
+
+
+    #[test]
+    fn handle_idendifier(){
+        let source = "this_is_a_var = 12;";
+        let mut scanner = Scanner::new(source);
+        scanner.scan_tokens().unwrap();
+        assert_eq!(scanner.tokens.len(), 5);
+        assert_eq!(scanner.tokens[0].token_type, Identifier);
+        assert_eq!(scanner.tokens[1].token_type, Equal);
+        assert_eq!(scanner.tokens[2].token_type, Number);
+        assert_eq!(scanner.tokens[3].token_type, SemiColon);
+        assert_eq!(scanner.tokens[4].token_type, Eof);
+    }
+
+    #[test]
+    fn handle_keywords(){
+        let source = "var this_is_a_var = 12;\nwhile true {print 3};";
+        let mut scanner = Scanner::new(source);
+        scanner.scan_tokens().unwrap();
+        assert_eq!(scanner.tokens.len(), 13);
+        assert_eq!(scanner.tokens[0].token_type, Var);
+        assert_eq!(scanner.tokens[1].token_type, Identifier);
+        assert_eq!(scanner.tokens[2].token_type, Equal);
+        assert_eq!(scanner.tokens[3].token_type, Number);
+        assert_eq!(scanner.tokens[4].token_type, SemiColon);
+        assert_eq!(scanner.tokens[5].token_type, While);
+        assert_eq!(scanner.tokens[6].token_type, True);
+        assert_eq!(scanner.tokens[7].token_type, LeftBrace);
+        assert_eq!(scanner.tokens[8].token_type, Print);
+        assert_eq!(scanner.tokens[9].token_type, Number);
+        assert_eq!(scanner.tokens[10].token_type, RigthBrace);
+        assert_eq!(scanner.tokens[11].token_type, SemiColon);
+        assert_eq!(scanner.tokens[12].token_type, Eof);
+    }
 }

@@ -1,11 +1,22 @@
 use std::string::String;
+use std::collections::HashMap;
 
 fn is_digit(ch: char) -> bool {
-	ch as u8 >= '0' as u8 && ch as u8 <= '9' as u8
+	let uch = ch as u8;
+	uch >= '0' as u8 && uch <= '9' as u8
+}
+fn is_aplha(ch: char) -> bool {
+	let uch = ch as u8;
+	(uch >= 'a' as u8 && uch <= 'z' as u8) || (uch >= 'A' as u8 && uch <= 'Z' as u8) || (ch == '_')
 }
 
+fn is_aplha_numeric(ch: char) -> bool {
+	is_aplha(ch) || is_digit(ch)
+}
+
+
 #[allow(dead_code)]
-#[derive(Debug, Clone,PartialEq)]
+#[derive(Debug, Copy, Clone,PartialEq)]
 pub enum TokenType {
 	LeftParen,
 	RigthParen,
@@ -36,6 +47,7 @@ pub enum TokenType {
 	Class, 
 	Else, 
 	Fasle,
+	For,
 	Fun,
 	If, 
 	Nil, 
@@ -58,10 +70,31 @@ impl std::fmt::Display for TokenType {
 	}
 }
 
+fn get_kewords_hashmap() -> HashMap<&'static str, TokenType> {
+	HashMap::from([
+		("and",And),
+		("class", Class),
+		("else", Else),
+		("false", Fasle),
+		("for", For),
+		("fun", Fun),
+		("if", If),
+		("nil", Nil),
+		("or",Or),
+		("print", Print),
+		("return", Return),
+		("super", Super),
+		("this", This),
+		("true", True),
+		("var", Var),
+		("while", While)
+	])
+}
+
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum LiteralValue {
-    IntValue(i64),
+	IntValue(i64),
     FValue(f64), 
     StringValue(String),
     Identifiervalue(String),
@@ -83,7 +116,7 @@ impl Token {
 			token_type, 
 			lexeme, 
 			literal, 
-			line_number
+			line_number,
 		}
 	}
 	pub fn to_string(self: &Self) -> String {
@@ -91,12 +124,14 @@ impl Token {
 	}
 }
 
+
 pub struct Scanner {
 	pub source: String,
 	pub tokens: Vec<Token>,
 	pub start: usize,
 	pub current: usize,
 	pub line: usize,
+	pub kewords: HashMap<&'static str,TokenType>
 }
 
 impl Scanner {
@@ -107,6 +142,7 @@ impl Scanner {
 			start: 0,
 			current: 0,
 			line: 1,
+			kewords: get_kewords_hashmap(),
 		}
 	}
 	pub fn scan_tokens(&mut self) -> Result<Vec<Token>,String> {
@@ -201,7 +237,9 @@ impl Scanner {
 			'"' => self.string()?,
 			c => {
 				if is_digit(c) {
-					let _ = self.number();
+					self.number()?;
+				} else if is_aplha(c) {
+					self.identifier();
 				} else {
 					return Err(format!("Unrecognaised char at line{}: {}",self.line, c))
 				}
@@ -217,8 +255,8 @@ impl Scanner {
 		if self.peek() == '.' && is_digit(self.peek_next()) {
 			self.advance();
 			while is_digit(self.peek()) {
-			self.advance();
-		}
+				self.advance();
+			}
 		}
 		let substring = &self.source[self.start..self.current];
 		let value = substring.parse::<f64>();
@@ -228,7 +266,19 @@ impl Scanner {
 		}
 		Ok(())
 	}
-
+	fn identifier(&mut self) /*->Result<(),String>*/ {
+		while is_aplha_numeric(self.peek()) {
+			self.advance();
+		}
+		let substring = &self.source[self.start..self.current];
+		if let Some(&t_type) = self.kewords.get(substring) {
+			self.add_token(t_type);
+		} else {
+			self.add_token(Identifier);
+		}
+		//Ok(())
+	}
+	
 	fn string(&mut self) ->Result<(),String> {
 		while self.peek() != '"' && !self.is_at_end() {
 			if self.peek() == '\n'{
@@ -291,6 +341,7 @@ impl Scanner {
 		}
 		self.source.chars().nth(self.current + 1).unwrap()
 	}
+	
 	
 	
 }
