@@ -112,9 +112,7 @@ mod  tests {
         assert_eq!(scanner.tokens[0].token_type, StringLit);
         match scanner.tokens[0].literal.as_ref().unwrap() {
             StringValue(val) => assert_eq!(val, "ABC"),
-            IntValue(_) => panic!("incorect literal type"),
-            FValue(_) => panic!("incorect literal type"),
-            Identifiervalue(_) => panic!("incorect literal type"),
+            _ => panic!("incorect literal type"),
         }
         assert_eq!(scanner.tokens[1].token_type, Eof);
     }
@@ -128,9 +126,7 @@ mod  tests {
         assert_eq!(scanner.tokens[0].token_type, StringLit);
         match scanner.tokens[0].literal.as_ref().unwrap() {
             StringValue(val) => assert_eq!(val, "ABC\nEF"),
-            IntValue(_) => panic!("incorect literal type"),
-            FValue(_) => panic!("incorect literal type"),
-            Identifiervalue(_) => panic!("incorect literal type"),
+            _ => panic!("incorect literal type"),
         }
         assert_eq!(scanner.tokens[1].token_type, Eof);
     }
@@ -145,5 +141,36 @@ mod  tests {
             Err(_) => (),
         }
         
+    }
+
+
+    #[test]
+    fn handle_number_lit(){
+        let source = "123.123\n321.0\n5";
+        let mut scanner = Scanner::new(source);
+        scanner.scan_tokens().unwrap();
+        assert_eq!(scanner.tokens.len(), 4);
+        for i in 0..3 {
+            assert_eq!(scanner.tokens[i].token_type, Number);
+        }
+        match scanner.tokens[0].literal {
+            Some(FValue(val)) => assert_eq!(val, 123.123),
+            _ => {
+                panic!("incorect literal type")
+            },
+        }
+        match scanner.tokens[1].literal {
+            Some(FValue(val)) => assert_eq!(val, 321.0),
+            _ => {
+                panic!("incorect literal type")
+            },
+        }
+        match scanner.tokens[2].literal {
+            Some(FValue(val)) => assert_eq!(val, 5.),
+            _ => {
+                panic!("incorect literal type")
+            },
+        }
+        assert_eq!(scanner.tokens[3].token_type, Eof);
     }
 }

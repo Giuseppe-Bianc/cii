@@ -1,5 +1,9 @@
 use std::string::String;
 
+fn is_digit(ch: char) -> bool {
+	ch as u8 >= '0' as u8 && ch as u8 <= '9' as u8
+}
+
 #[allow(dead_code)]
 #[derive(Debug, Clone,PartialEq)]
 pub enum TokenType {
@@ -135,7 +139,7 @@ impl Scanner {
 	}
 	pub fn scan_token(&mut self) -> Result<(), String> {
 		let c= self.advance();
-
+		
 		match c {
 			'(' => self.add_token(LeftParen),
 			')' => self.add_token(RigthParen),
@@ -195,7 +199,32 @@ impl Scanner {
 			' '|'\r'|'\t' => (),
 			'\n' => self.line += 1,
 			'"' => self.string()?,
-			_ => return Err(format!("Unrecognaised char at line{}: {}",self.line, c)),
+			c => {
+				if is_digit(c) {
+					let _ = self.number();
+				} else {
+					return Err(format!("Unrecognaised char at line{}: {}",self.line, c))
+				}
+			}
+		}
+		Ok(())
+	}
+	
+	fn number(&mut self) ->Result<(),String> {
+		while is_digit(self.peek()) {
+			self.advance();
+		}
+		if self.peek() == '.' && is_digit(self.peek_next()) {
+			self.advance();
+			while is_digit(self.peek()) {
+			self.advance();
+		}
+		}
+		let substring = &self.source[self.start..self.current];
+		let value = substring.parse::<f64>();
+		match value {
+			Ok(value) => self.add_token_lit(Number, Some(FValue(value))),
+			Err(_) => return Err(format!("could not parse number: {}", substring)),
 		}
 		Ok(())
 	}
@@ -255,5 +284,13 @@ impl Scanner {
 		}
 		self.source.chars().nth(self.current).unwrap()
 	}
+	
+	fn peek_next(&self) -> char {
+		if self.current+1 >= self.source.len() {
+			return '\0';
+		}
+		self.source.chars().nth(self.current + 1).unwrap()
+	}
+	
 	
 }
