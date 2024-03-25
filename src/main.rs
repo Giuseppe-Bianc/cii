@@ -7,7 +7,7 @@ use std::io::BufRead;
 use std::process::exit;
 
 use scanner::Scanner;
-fn run_prompt()  -> Result<(), String>{
+fn run_prompt() -> Result<(), String> {
     loop {
         print!("> ");
         let stdin = io::stdin();
@@ -16,20 +16,20 @@ fn run_prompt()  -> Result<(), String>{
             Ok(n) => {
                 if n <= 1 {
                     return Ok(());
-                } 
-            },
+                }
+            }
             Err(_) => return Err("Error reading input: {}".to_string()),
         }
         println!("ECHO:{}", buffer);
         match run(&buffer) {
             Ok(_) => todo!(),
-            Err(msg) => println!("{}",msg),
+            Err(msg) => println!("{}", msg),
         }
     }
 }
 
 fn run_file(path: &str) -> Result<(), String> {
-    match fs::read_to_string(path){
+    match fs::read_to_string(path) {
         Err(msg) => return Err(msg.to_string()),
         Ok(contents) => return run(&contents),
     }
@@ -45,14 +45,14 @@ fn run(contents: &str) -> Result<(), String> {
 }
 fn main() {
     let args: Vec<String> = env::args().collect();
-    
+
     if args.len() > 2 {
         println!("Usage  jlox [script]");
         exit(64);
     } else if args.len() == 2 {
-        match run_file(&args[1]){
+        match run_file(&args[1]) {
             Ok(_) => exit(0),
-            Err(msg) =>{
+            Err(msg) => {
                 println!("EROR:\n{}", msg);
                 exit(1);
             }
@@ -60,7 +60,7 @@ fn main() {
     } else {
         match run_prompt() {
             Ok(_) => exit(0),
-            Err(msg) =>{
+            Err(msg) => {
                 println!("EROR:\n{}", msg);
                 exit(1);
             }
@@ -69,14 +69,14 @@ fn main() {
 }
 
 #[cfg(test)]
-mod  tests {
-    use crate::scanner::TokenType::*;
+mod tests {
     use crate::scanner::LiteralValue::*;
+    use crate::scanner::TokenType::*;
 
     use super::*;
 
     #[test]
-    fn handle_one_char_tokens(){
+    fn handle_one_char_tokens() {
         let source = "(( )) }{ ";
         let mut scanner = Scanner::new(source);
         scanner.scan_tokens().unwrap();
@@ -91,7 +91,7 @@ mod  tests {
     }
 
     #[test]
-    fn handle_two_char_tokens(){
+    fn handle_two_char_tokens() {
         let source = "! != == >=";
         let mut scanner = Scanner::new(source);
         scanner.scan_tokens().unwrap();
@@ -104,7 +104,7 @@ mod  tests {
     }
 
     #[test]
-    fn handle_string_lit(){
+    fn handle_string_lit() {
         let source = r#""ABC""#;
         let mut scanner = Scanner::new(source);
         scanner.scan_tokens().unwrap();
@@ -118,7 +118,7 @@ mod  tests {
     }
 
     #[test]
-    fn handle_string_multiline(){
+    fn handle_string_multiline() {
         let source = "\"ABC\nEF\"";
         let mut scanner = Scanner::new(source);
         scanner.scan_tokens().unwrap();
@@ -132,7 +132,7 @@ mod  tests {
     }
 
     #[test]
-    fn handle_string_lit_unterminated(){
+    fn handle_string_lit_unterminated() {
         let source = r#""ABC"#;
         let mut scanner = Scanner::new(source);
         let scan_tokens = scanner.scan_tokens();
@@ -140,12 +140,10 @@ mod  tests {
             Ok(_) => panic!("shoud have failed"),
             Err(_) => (),
         }
-        
     }
 
-
     #[test]
-    fn handle_number_lit(){
+    fn handle_number_lit() {
         let source = "123.123\n321.0\n5";
         let mut scanner = Scanner::new(source);
         scanner.scan_tokens().unwrap();
@@ -157,26 +155,25 @@ mod  tests {
             Some(FValue(val)) => assert_eq!(val, 123.123),
             _ => {
                 panic!("incorect literal type")
-            },
+            }
         }
         match scanner.tokens[1].literal {
             Some(FValue(val)) => assert_eq!(val, 321.0),
             _ => {
                 panic!("incorect literal type")
-            },
+            }
         }
         match scanner.tokens[2].literal {
             Some(FValue(val)) => assert_eq!(val, 5.),
             _ => {
                 panic!("incorect literal type")
-            },
+            }
         }
         assert_eq!(scanner.tokens[3].token_type, Eof);
     }
 
-
     #[test]
-    fn handle_idendifier(){
+    fn handle_idendifier() {
         let source = "this_is_a_var = 12;";
         let mut scanner = Scanner::new(source);
         scanner.scan_tokens().unwrap();
@@ -189,7 +186,7 @@ mod  tests {
     }
 
     #[test]
-    fn handle_keywords(){
+    fn handle_keywords() {
         let source = "var this_is_a_var = 12;\nwhile true {print 3};";
         let mut scanner = Scanner::new(source);
         scanner.scan_tokens().unwrap();
