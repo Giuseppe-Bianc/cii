@@ -1,5 +1,6 @@
-mod scanner;
 mod expr;
+mod parser;
+mod scanner;
 
 use std::env;
 use std::fs;
@@ -19,11 +20,11 @@ fn run_prompt() -> Result<(), String> {
                     return Ok(());
                 }
             }
-            Err(_) => return Err("Error reading input: {}".to_string()),
+            Err(_) => return Err("Couldnt read line".to_string()),
         }
-        println!("ECHO:{}", buffer);
+        println!("ECHO: {}", buffer);
         match run(&buffer) {
-            Ok(_) => todo!(),
+            Ok(_) => (),
             Err(msg) => println!("{}", msg),
         }
     }
@@ -48,13 +49,13 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     if args.len() > 2 {
-        println!("Usage  jlox [script]");
+        println!("Usage: jlox [script]");
         exit(64);
     } else if args.len() == 2 {
         match run_file(&args[1]) {
             Ok(_) => exit(0),
             Err(msg) => {
-                println!("EROR:\n{}", msg);
+                println!("ERROR:\n{}", msg);
                 exit(1);
             }
         }
@@ -62,7 +63,7 @@ fn main() {
         match run_prompt() {
             Ok(_) => exit(0),
             Err(msg) => {
-                println!("EROR:\n{}", msg);
+                println!("ERROR\n{}", msg);
                 exit(1);
             }
         }
