@@ -353,13 +353,6 @@ impl Token {
     }
 }
 
-/*
-var test = 0.1;
-var test2 = test + 0.2;
-
-
-*/
-
 #[cfg(test)]
 mod tests {
     use super::*;

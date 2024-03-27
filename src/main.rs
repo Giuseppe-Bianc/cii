@@ -1,20 +1,26 @@
+mod scanner;
 mod expr;
 mod parser;
-mod scanner;
+use crate::scanner::*;
+use crate::parser::*;
 
 use std::env;
 use std::fs;
-use std::io;
-use std::io::BufRead;
+use std::io::{self, BufRead, Write};
 use std::process::exit;
 
-use scanner::Scanner;
 fn run_prompt() -> Result<(), String> {
     loop {
         print!("> ");
-        let stdin = io::stdin();
+        match io::stdout().flush() {
+            Ok(_) => (),
+            Err(_) => return Err("Could not flush stdout".to_string()),
+        }
+
         let mut buffer = String::new();
-        match stdin.lock().read_line(&mut buffer) {
+        let stdin = io::stdin();
+        let mut handle = stdin.lock();
+        match handle.read_line(&mut buffer) {
             Ok(n) => {
                 if n <= 1 {
                     return Ok(());
@@ -22,6 +28,7 @@ fn run_prompt() -> Result<(), String> {
             }
             Err(_) => return Err("Couldnt read line".to_string()),
         }
+
         println!("ECHO: {}", buffer);
         match run(&buffer) {
             Ok(_) => (),
@@ -40,9 +47,9 @@ fn run_file(path: &str) -> Result<(), String> {
 fn run(contents: &str) -> Result<(), String> {
     let mut scanner = Scanner::new(contents);
     let tokens = scanner.scan_tokens()?;
-    for token in tokens {
-        println!("{:?}", token)
-    }
+    let mut parser = Parser::new(tokens);
+    let expr = parser.parse()?;
+    println!("{}", expr.to_string());
     return Ok(());
 }
 fn main() {
